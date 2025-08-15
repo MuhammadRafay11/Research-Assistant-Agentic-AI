@@ -103,6 +103,6 @@ if __name__ == "__main__":
             break
         try:
             ans = hybrid_answer(q)
-            print("\n🧠 Answer:\n", ans)
+            print("\n Answer:\n", ans)
         except Exception as e:
-            print(f"⚠️ Error: {e}")
+            print(f" Error: {e}")

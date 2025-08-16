@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Research Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #28a745;
+        }
+
+        .status-info {
+            display: flex;
+            gap: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #28a745;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            border: 2px dashed #e0e0e0;
+            border-radius: 15px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .section:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5em;
+        }
+
+        .section p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: block;
+            cursor: pointer;
+            background: white;
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-wrapper:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .file-input-wrapper.dragover {
+            border-color: #667eea;
+            background: #f0f4ff;
+            transform: scale(1.02);
+        }
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-text {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .file-input-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        input[type="text"], button {
+            width: 100%;
+            padding: 15px 20px;
+            margin: 10px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: linear-gradient(135deg, #ccc 0%, #999 100%);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .response {
+            margin-top: 25px;
+            padding: 25px;
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .response.error {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .response.success {
+            border-left-color: #28a745;
+            background: #f0fff4;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-style: italic;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .file-info {
+            font-size: 14px;
+            color: #666;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .sources {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .sources h4 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .source-list {
+            list-style: none;
+        }
+
+        .source-list li {
+            padding: 5px 0;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .source-list li::before {
+            content: "🔗 ";
+            margin-right: 5px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 20px;
+            }
+            
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .status-bar {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .status-info {
+                flex-direction: column;
+                gap: 10px;
+                width: 100%;
+            }
+        }
+
+        .answer-content {
+            line-height: 1.8;
+            color: #333;
+        }
+
+        .answer-content h3 {
+            color: #667eea;
+            margin: 20px 0 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 AI Research Assistant</h1>
+            <p>Upload documents and ask questions. Get answers from your documents, knowledge base, and the web.</p>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-info">
+                <div class="status-item">
+                    <div class="status-dot"></div>
+                    <span>Backend: <span id="backendStatus">Connecting...</span></span>
+                </div>
+                <div class="status-item">
+                    <div class="status-dot"></div>
+                    <span>Uploaded Files: <span id="fileCount">0</span></span>
+                </div>
+            </div>
+            <button onclick="checkHealth()" style="width: auto; padding: 8px 16px; margin: 0;">Refresh Status</button>
+        </div>
+
+        <div class="grid">
+            <div class="section">
+                <h2>📄 Upload Document</h2>
+                <p>Upload PDF or TXT files to add them to your knowledge base. Files are processed and stored in vector format for intelligent searching.</p>
+                
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="fileInput" class="file-input-wrapper">
+                            <input type="file" id="fileInput" name="file" accept=".pdf,.txt" class="file-input" required>
+                            <div class="file-input-icon">📎</div>
+                            <div class="file-input-text">
+                                <strong>Click to browse</strong> or drag and drop your file here<br>
+                                <small>Supported formats: PDF, TXT (Max 10MB)</small>
+                            </div>
+                        </label>
+                    </div>
+                    <button type="submit" id="uploadBtn">
+                        <span id="uploadBtnText">Upload & Process File</span>
+                    </button>
+                </form>
+                
+                <div class="loading" id="uploadLoading">
+                    <div class="spinner"></div>
+                    Processing and storing document...
+                </div>
+                <div id="uploadResponse"></div>
+            </div>
+
+            <div class="section">
+                <h2>🔍 Ask Questions</h2>
+                <p>Ask questions about your uploaded documents or general topics. The assistant searches your documents, knowledge base, and the web for comprehensive answers.</p>
+                
+                <form id="queryForm">
+                    <div class="form-group">
+                        <input type="text" id="queryInput" placeholder="Enter your question here..." required maxlength="1000">
+                    </div>
+                    <button type="submit" id="queryBtn">
+                        <span id="queryBtnText">Search & Answer</span>
+                    </button>
+                </form>
+                
+                <div class="loading" id="queryLoading">
+                    <div class="spinner"></div>
+                    Searching documents, knowledge base, and web...
+                </div>
+                <div id="queryResponse"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000';
+
+        // Check backend health on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkHealth();
+            setupFileHandlers();
+        });
+
+        async function checkHealth() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+                
+                document.getElementById('backendStatus').textContent = 'Connected ';
+                document.getElementById('fileCount').textContent = data.uploaded_files || 0;
+                
+                // Update status dots
+                const dots = document.querySelectorAll('.status-dot');
+                dots.forEach(dot => dot.style.background = '#28a745');
+                
+            } catch (error) {
+                document.getElementById('backendStatus').textContent = 'Disconnected ';
+                console.error('Backend health check failed:', error);
+                
+                const dots = document.querySelectorAll('.status-dot');
+                dots.forEach(dot => dot.style.background = '#dc3545');
+            }
+        }
+
+        function setupFileHandlers() {
+            const fileInputWrapper = document.querySelector('.file-input-wrapper');
+            const fileInput = document.getElementById('fileInput');
+
+            // Drag and drop handlers
+            fileInputWrapper.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
+
+            fileInputWrapper.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+            });
+
+            fileInputWrapper.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    updateFileInputText(files[0].name);
+                }
+            });
+
+            // File selection handler
+            fileInput.addEventListener('change', function(e) {
+                if (this.files.length > 0) {
+                    updateFileInputText(this.files[0].name);
+                }
+            });
+        }
+
+        function updateFileInputText(filename) {
+            const textElement = document.querySelector('.file-input-text');
+            textElement.innerHTML = `
+                <strong>Selected: ${filename}</strong><br>
+                <small>Click to select a different file</small>
+            `;
+        }
+
+        // Upload form handler
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            const fileInput = document.getElementById('fileInput');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const uploadBtnText = document.getElementById('uploadBtnText');
+            const responseDiv = document.getElementById('uploadResponse');
+            const loadingDiv = document.getElementById('uploadLoading');
+            
+            if (!fileInput.files[0]) {
+                showResponse(responseDiv, 'Please select a file first.', 'error');
+                return;
+            }
+            
+            formData.append('file', fileInput.files[0]);
+            
+            // Show loading state
+            uploadBtn.disabled = true;
+            uploadBtnText.textContent = 'Uploading...';
+            loadingDiv.classList.add('show');
+            responseDiv.innerHTML = '';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    const message = `
+                        <strong> Upload Successful!</strong><br>
+                        ${result.message}<br>
+                        <div class="file-info">
+                             <strong>File:</strong> ${result.filename}<br>
+                             <strong>Chunks:</strong> ${result.chunks_count}<br>
+                             <strong>Size:</strong> ${(result.file_size / 1024).toFixed(1)} KB<br>
+                             <strong>Namespace:</strong> ${result.namespace}
+                        </div>
+                    `;
+                    showResponse(responseDiv, message, 'success');
+                    
+                    // Reset file input
+                    fileInput.value = '';
+                    document.querySelector('.file-input-text').innerHTML = `
+                        <strong>Click to browse</strong> or drag and drop your file here<br>
+                        <small>Supported formats: PDF, TXT (Max 10MB)</small>
+                    `;
+                    
+                    // Update file count
+                    checkHealth();
+                    
+                } else {
+                    showResponse(responseDiv, `❌ Error: ${result.detail}`, 'error');
+                }
+                
+            } catch (error) {
+                showResponse(responseDiv, `❌ Network Error: ${error.message}`, 'error');
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtnText.textContent = 'Upload & Process File';
+                loadingDiv.classList.remove('show');
+            }
+        });
+
+        // Query form handler
+        document.getElementById('queryForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const queryInput = document.getElementById('queryInput');
+            const queryBtn = document.getElementById('queryBtn');
+            const queryBtnText = document.getElementById('queryBtnText');
+            const responseDiv = document.getElementById('queryResponse');
+            const loadingDiv = document.getElementById('queryLoading');
+            
+            const query = queryInput.value.trim();
+            if (!query) {
+                showResponse(responseDiv, 'Please enter a question.', 'error');
+                return;
+            }
+            
+            if (query.length > 1000) {
+                showResponse(responseDiv, 'Question is too long. Maximum 1000 characters allowed.', 'error');
+                return;
+            }
+            
+            // Show loading state
+            queryBtn.disabled = true;
+            queryBtnText.textContent = 'Searching...';
+            loadingDiv.classList.add('show');
+            responseDiv.innerHTML = '';
+            
+            try {
+                const formData = new FormData();
+                formData.append('query', query);
+                
+                const response = await fetch(`${API_BASE_URL}/query`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    let sourcesHtml = '';
+                    if (result.sources && result.sources.length > 0) {
+                        sourcesHtml = `
+                            <div class="sources">
+                                <h4>📚 Sources</h4>
+                                <ul class="source-list">
+                                    ${result.sources.map(source => `<li>${source}</li>`).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    }
+                    
+                    const searchIndicators = [];
+                    if (result.has_vector_results) searchIndicators.push('📄 Documents');
+                    if (result.has_web_results) searchIndicators.push('🌐 Web');
+                    if (searchIndicators.length === 0) searchIndicators.push('🧠 General Knowledge');
+                    
+                    const message = `
+                        <div class="answer-content">
+                            <h3>🤖 Answer:</h3>
+                            <p>${result.answer.replace(/\n/g, '<br>')}</p>
+                        </div>
+                        ${sourcesHtml}
+                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e0e0e0; font-size: 0.9em; color: #666;">
+                            <strong>Search performed in:</strong> ${searchIndicators.join(', ')}
+                        </div>
+                    `;
+                    showResponse(responseDiv, message);
+                    
+                } else {
+                    showResponse(responseDiv, ` Error: ${result.detail}`, 'error');
+                }
+                
+            } catch (error) {
+                showResponse(responseDiv, ` Network Error: ${error.message}`, 'error');
+            } finally {
+                queryBtn.disabled = false;
+                queryBtnText.textContent = 'Search & Answer';
+                loadingDiv.classList.remove('show');
+            }
+        });
+
+        function showResponse(element, message, type = '') {
+            element.innerHTML = `<div class="response ${type}">${message}</div>`;
+            element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Enter key support for query input
+        document.getElementById('queryInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById('queryForm').dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // Auto-resize and character counter for query input
+        document.getElementById('queryInput').addEventListener('input', function(e) {
+            const remaining = 1000 - this.value.length;
+            if (remaining < 100) {
+                if (!document.getElementById('charCounter')) {
+                    const counter = document.createElement('div');
+                    counter.id = 'charCounter';
+                    counter.style.fontSize = '0.8em';
+                    counter.style.color = remaining < 0 ? '#dc3545' : '#666';
+                    counter.style.textAlign = 'right';
+                    counter.style.marginTop = '5px';
+                    this.parentNode.appendChild(counter);
+                }
+                document.getElementById('charCounter').textContent = `${remaining} characters remaining`;
+                document.getElementById('charCounter').style.color = remaining < 0 ? '#dc3545' : '#666';
+            } else if (document.getElementById('charCounter')) {
+                document.getElementById('charCounter').remove();
+            }
+        });
+    </script>
+</body>
+</html>

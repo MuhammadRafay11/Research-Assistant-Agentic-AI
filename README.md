@@ -18,12 +18,13 @@ Python, FastAPI, OpenAI GPT-4, Pinecone Vector Database, LangChain, Tavily API, 
 
 ### Main Files
 FastAPIVersion.py - Frontend.html
+<br>
 rest are for testing purpose
 
 ### Instructions
 run the FastAPI server using  "uvicorn FastAPIVersion:app --reload"
-or if you want to run it on Different port "uvicorn FastAPIVersion:app --reload --port=8000" update the number accordingly
-
+or if you want to run it on Different port "uvicorn FastAPIVersion:app --reload --port=8000" update the number .
+<br>
 make sure to have well structured .env file with your API's
-
+<br>
 Last make sure to install the dependencies using requirements.txt
